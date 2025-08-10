@@ -9,4 +9,4 @@ RUN unzip wix.zip
 RUN cp -rvf wix/* .
 RUN rm -rf wix wix.zip
 CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
-EXPOSE 80
+EXPOSE 80 22

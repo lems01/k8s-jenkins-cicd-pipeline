@@ -1,26 +1,29 @@
-FROM centos:7
+FROM ubuntu:20.04
 LABEL maintainer="lemuleoluwatosin@gmail.com"
 
-# Install Apache, unzip, Python (for gdown)
-RUN yum install -y httpd unzip python3-pip && \
+# Prevent interactive prompts during package installs
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Apache, unzip, Python3 (for gdown)
+RUN apt-get update && \
+    apt-get install -y apache2 unzip python3-pip curl && \
     pip3 install gdown && \
-    yum clean all
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory to Apache's web root
 WORKDIR /var/www/html
 
-# Download file from Google Drive (replace FILE_ID with your own)
-# Example: https://drive.google.com/file/d/FILE_ID/view
-# Extract the FILE_ID part and use it below:
+# Download file from Google Drive using gdown
+# Replace FILE_ID with your file's ID
 RUN gdown "https://drive.google.com/uc?id=1I-dT98YWe-hVguQxbQEKGTBnJwS8Xdhg"
 
-# Assuming the downloaded file is wix.zip
+# Unzip and set up website
 RUN unzip wix.zip && \
     cp -rvf wix/* . && \
     rm -rf wix wix.zip
 
-# Start Apache in foreground
-CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+# Expose HTTP port
+EXPOSE 80
 
-# Expose web server port
-EXPOSE 80 22
+# Start Apache in foreground
+CMD ["apachectl", "-D", "FOREGROUND"]

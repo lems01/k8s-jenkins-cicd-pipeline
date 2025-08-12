@@ -1,13 +1,7 @@
 - hosts: all
   become: true
   tasks:
-    - name: Start Minikube if not running
-      command: minikube start
-      args:
-        creates: /home/ubuntu/.minikube
-
-    - name: Apply deployment
+    - name: create new deployment
       command: kubectl apply -f /home/ubuntu/Deployment.yaml
-
-    - name: Apply service
+    - name: create new service
       command: kubectl apply -f /home/ubuntu/Service.yaml

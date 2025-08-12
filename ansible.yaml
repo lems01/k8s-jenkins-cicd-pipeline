@@ -1,6 +1,8 @@
 - hosts: all
   become: true
   tasks:
+    - name: Context
+      command: minikube update-context
     - name: create new deployment
       command: kubectl apply -f /home/ubuntu/Deployment.yaml
     - name: create new service

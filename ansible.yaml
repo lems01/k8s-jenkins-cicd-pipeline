@@ -1,7 +1,15 @@
-- hosts: all
+- hosts: master
   become: true
   tasks:
-    - name: create new deployment
+    - name: Ensure kubeconfig exists
+      stat:
+        path: /home/ubuntu/.kube/config
+      register: kubeconfig_file
+
+    - name: Fail if kubeconfig missing
+      fail:
+        msg: "Kubeconfig file is missing! Ensure cluster is initialized."
+      when: not kubeconfig_file.stat.exists
+
+    - name: Apply deployment
       command: kubectl apply -f /home/ubuntu/Deployment.yaml
-    - name: create new service
-      command: kubectl apply -f /home/ubuntu/Service.yaml

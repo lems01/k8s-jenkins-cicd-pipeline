@@ -23,7 +23,7 @@ RUN unzip wix.zip && \
     rm -rf wix wix.zip
 
 # Expose HTTP port
-EXPOSE 80 22
+EXPOSE 80
 
 # Start Apache in foreground
 CMD ["apachectl", "-D", "FOREGROUND"]

@@ -1,15 +1,13 @@
-- hosts: master
+- hosts: all
   become: true
   tasks:
-    - name: Ensure kubeconfig exists
-      stat:
-        path: /home/ubuntu/.kube/config
-      register: kubeconfig_file
-
-    - name: Fail if kubeconfig missing
-      fail:
-        msg: "Kubeconfig file is missing! Ensure cluster is initialized."
-      when: not kubeconfig_file.stat.exists
+    - name: Start Minikube if not running
+      command: minikube start
+      args:
+        creates: /home/ubuntu/.minikube
 
     - name: Apply deployment
       command: kubectl apply -f /home/ubuntu/Deployment.yaml
+
+    - name: Apply service
+      command: kubectl apply -f /home/ubuntu/Service.yaml

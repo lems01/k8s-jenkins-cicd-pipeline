@@ -1,0 +1,20 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: lems
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lems
+  template:
+    metadata:
+      labels:
+        app: lems
+    spec:
+      containers:
+        - name: lems
+          image: lems01/pipeline
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80

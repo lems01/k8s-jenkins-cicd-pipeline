@@ -11,4 +11,3 @@ spec:
       nodePort: 31200
   selector:
     app: lems
-  type: LoadBalancer

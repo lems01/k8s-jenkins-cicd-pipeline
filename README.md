@@ -201,46 +201,57 @@ minikube status
 - Create a DOckerfile *Content of this DockerFile will be explained later in the image building*
 
 ```Dockerfile
-FROM centos:latest
-MAINTAINER lemuleoluwatosin@gmail.com
-RUN yum install -y httpd \
-zip \
-unzip \
-ADD https://drive.google.com/file/d/1I-dT98YWe-hVguQxbQEKGTBnJwS8Xdhg/view?usp=drive_link /var/www.html
-WORKDIR /var/www/html/
-RUN unzip wix.zip
-RUN cp -rvf wix/* .
-RUN rm -rf wix wix.zip
-CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+# Install Apache, unzip, Python3 (for gdown)
+RUN apt-get update && \
+    apt-get install -y apache2 unzip python3-pip curl && \
+    pip3 install gdown && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set working directory to Apache's web root
+WORKDIR /var/www/html
+
+# Download file from Google Drive using gdown
+# Replace FILE_ID with your file's ID
+RUN gdown "https://drive.google.com/uc?id=1I-dT98YWe-hVguQxbQEKGTBnJwS8Xdhg"
+
+# Unzip and set up website
+RUN unzip wix.zip && \
+    cp -rvf wix/* . && \
+    rm -rf wix wix.zip
+
+# Expose HTTP port
 EXPOSE 80
+
+# Start Apache in foreground
+CMD ["apachectl", "-D", "FOREGROUND"]
 ```
 
 - Create a Pipeline job in Jenkins
    - Open your Jenkins web interface, login with your credentials
    - Create a New Pipeline Job
-   1. Click "New Item" from the dashboard.
-   2. Enter a name for your job.
-   3. Select "Pipeline" and click OK.
-   4. In triggers, select `GitHub hook trigger for GITScm polling`
-   5. In pipeline, select Pipeline script
-   6. Tick Use Groovy Sandbox
-   7. To add script you can either enter it in the box or use the pipeline syntax. if using the Pipeline syntax script
-      - Select Git.
-      - Add the GitHub repository URL.
-      - Add credentials (if private).
-      - Specify the branch (master) then Click on `Generate Pipeline Script`
-      - copy and paste the link
+      1. Click "New Item" from the dashboard.
+      2. Enter a name for your job.
+      3. Select "Pipeline" and click OK.
+      4. In triggers, select `GitHub hook trigger for GITScm polling`
+      5. In pipeline, select Pipeline script
+      6. Tick Use Groovy Sandbox
+      7. To add script you can either enter it in the box or use the pipeline syntax. if using the Pipeline syntax script
+         - Select Git.
+         - Add the GitHub repository URL.
+         - Add credentials (if private).
+         - Specify the branch (master) then Click on `Generate Pipeline Script`
+         - Copy and paste the link in the Pipeline 
 
-```Groovy
-node {
-    
-    stage('Git checkout'){
-        git 'https://github.com/lems01/k8s-jenkins-cicd-pipeline.git'
-    }
-}
-```
-   8. Click on Apply then Save
-   9. Click on Build to test, check the console to see the output
+            ```Groovy
+            node {
+               
+               stage('Git checkout'){
+                  git 'https://github.com/lems01/k8s-jenkins-cicd-pipeline.git'
+               }
+            }
+            ```
+      8. Click on Apply then Save
+      9. Click on Build to test, check the console to see the output
 
 - Configure Webhook
    1. Goto `Settings` in your repository and select webhooks. Click on `Add webhook`
@@ -335,32 +346,32 @@ stage('Push docker images to docker hub') {
 
 ```
 
-Creating and Using Docker Hub Password in Jenkins Pipeline (GUI Syntax)
+***Creating and Using Docker Hub Password in Jenkins Pipeline (GUI Syntax)***
 
-#### 1. Add the Password to Jenkins
-1. Go to **Manage Jenkins → Credentials**.
-2. Select **(global)** scope.
-3. Click **Add Credentials**.
-4. **Kind**: `Secret text`.
-5. **Secret**: Enter your Docker Hub password.
-6. **ID**: `dockerhub_password`.
-7. Save.
+   #### 1. Add the Password to Jenkins
+   1. Go to **Manage Jenkins → Credentials**.
+   2. Select **(global)** scope.
+   3. Click **Add Credentials**.
+   4. **Kind**: `Secret text`.
+   5. **Secret**: Enter your Docker Hub password.
+   6. **ID**: `dockerhub_password`.
+   7. Save.
 
-#### 2. Generate Pipeline Syntax
-1. Open your pipeline job.
-2. Click **Pipeline Syntax**.
-3. Choose **withCredentials: Bind credentials to variables**.
-4. **Binding type**: `Secret text`.
-5. **Credentials**: Select `dockerhub_password`.
-6. **Variable**: `dockerhub_password`.
-7. Click **Generate Pipeline Script**.
+   #### 2. Generate Pipeline Syntax
+   1. Open your pipeline job.
+   2. Click **Pipeline Syntax**.
+   3. Choose **withCredentials: Bind credentials to variables**.
+   4. **Binding type**: `Secret text`.
+   5. **Credentials**: Select `dockerhub_password`.
+   6. **Variable**: `dockerhub_password`.
+   7. Click **Generate Pipeline Script**.
 
-#### 3. Example Output
-```groovy
-withCredentials([string(credentialsId: 'dockerhub_password', variable: 'dockerhub_password')]) {
-    // script
-}
-```
+   #### 3. Example Output
+   ```groovy
+   withCredentials([string(credentialsId: 'dockerhub_password', variable: 'dockerhub_password')]) {
+      // script
+   }
+   ```
 
 ### 6. Deploying the Image on the Kubernetes Cluster
 - Set up an SSH connection between the Ansible Server and the Web Server. On the Web Server edit the **ssh_config** file using `sudo vi /etc/ssh/ssh_config`, add
@@ -429,18 +440,10 @@ sudo iptables -t nat -A POSTROUTING -j MASQUERADE
 sudo apt install iptables-persistent
 sudo netfilter-persistent save
 ```
+6. Once, that is done run your ansible playbook `ansible-playbook ansible.yaml --check` to check if it's okay to run. 
 
-
-
----
-
-## 🛡️ Security & Best Practices
-
-- Use secrets management for Docker Hub and GitHub credentials.
-- Implement rollback strategies in Kubernetes (`Deployment` with replicas).
-- Integrate automated testing and linting in Jenkins.
-- Monitor deployed pods using Prometheus/Grafana (optional extension).
-
+### 7. Build on Jenkins, once it is successful. Use your public IP to access your website.
+**All scripts and imgaes used in this porject will be shared**
 ---
 
 ## 📄 License

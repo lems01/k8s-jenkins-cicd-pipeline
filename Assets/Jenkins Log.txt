@@ -1,0 +1,307 @@
+Started by GitHub push by lems01
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/lib/jenkins/workspace/pipeline
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Git checkout)
+[Pipeline] git
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/pipeline/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/lems01/k8s-jenkins-cicd-pipeline.git # timeout=10
+Fetching upstream changes from https://github.com/lems01/k8s-jenkins-cicd-pipeline.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > git fetch --tags --force --progress -- https://github.com/lems01/k8s-jenkins-cicd-pipeline.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision 2b1111afea4d4c056512c50334e9a123cf9ea4b6 (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 2b1111afea4d4c056512c50334e9a123cf9ea4b6 # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git branch -D master # timeout=10
+ > git checkout -b master 2b1111afea4d4c056512c50334e9a123cf9ea4b6 # timeout=10
+Commit message: "Deployments, services & Playbook added"
+ > git rev-list --no-walk 833fe6100a6a1c767f233c869130a32f6fef7181 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Send Dockerfile to the Ansible server using SSH Agent)
+[Pipeline] sshagent
+[ssh-agent] Using credentials ubuntu
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-JHNgk8gry1kR/agent.5122
+SSH_AGENT_PID=5125
+Running ssh-add (command line suppressed)
+Identity added: /var/lib/jenkins/workspace/pipeline@tmp/private_key_6937522577124430226.key (/var/lib/jenkins/workspace/pipeline@tmp/private_key_6937522577124430226.key)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.14.0-1010-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Wed Aug 13 10:47:35 UTC 2025
+
+  System load:  0.0                Temperature:           -273.1 C
+  Usage of /:   27.7% of 14.46GB   Processes:             121
+  Memory usage: 30%                Users logged in:       1
+  Swap usage:   0%                 IPv4 address for ens5: 172.31.45.153
+
+
+Expanded Security Maintenance for Applications is not enabled.
+
+45 updates can be applied immediately.
+To see these additional updates run: apt list --upgradable
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+[Pipeline] sh
++ scp /var/lib/jenkins/workspace/pipeline/Deployment.yaml /var/lib/jenkins/workspace/pipeline/Dockerfile /var/lib/jenkins/workspace/pipeline/Service.yaml /var/lib/jenkins/workspace/pipeline/ansible.yaml /var/lib/jenkins/workspace/pipeline/image.png ubuntu@3.81.106.9:/home/ubuntu
+[Pipeline] }
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 5125 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build Docker Image)
+[Pipeline] sshagent
+[ssh-agent] Using credentials ubuntu
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-awTB2KE97dTP/agent.5158
+SSH_AGENT_PID=5161
+Running ssh-add (command line suppressed)
+Identity added: /var/lib/jenkins/workspace/pipeline@tmp/private_key_5754695687363189145.key (/var/lib/jenkins/workspace/pipeline@tmp/private_key_5754695687363189145.key)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 cd /home/ubuntu/
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 docker image build -t pipeline:v1.39 .
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 808B done
+#1 DONE 0.0s
+
+#2 [auth] library/ubuntu:pull token for registry-1.docker.io
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/ubuntu:20.04
+#3 DONE 0.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/5] FROM docker.io/library/ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214
+#5 DONE 0.0s
+
+#6 [2/5] RUN apt-get update &&     apt-get install -y apache2 unzip python3-pip curl &&     pip3 install gdown &&     rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [3/5] WORKDIR /var/www/html
+#7 CACHED
+
+#8 [4/5] RUN gdown "https://drive.google.com/uc?id=1I-dT98YWe-hVguQxbQEKGTBnJwS8Xdhg"
+#8 CACHED
+
+#9 [5/5] RUN unzip wix.zip &&     cp -rvf wix/* . &&     rm -rf wix wix.zip
+#9 CACHED
+
+#10 exporting to image
+#10 exporting layers done
+#10 writing image sha256:ebb3b153b96abc1dee91516ab37dc65ff915c47ad2d8310230a50018a2833b60 done
+#10 naming to docker.io/library/pipeline:v1.39 done
+#10 DONE 0.0s
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 docker tag pipeline:v1.39 lems01/pipeline:v1.39
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 docker tag pipeline:v1.39 lems01/pipeline:latest
+[Pipeline] }
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 5161 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Push docker images to docker hub)
+[Pipeline] sshagent
+[ssh-agent] Using credentials ubuntu
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-YVlAyZx2a3oV/agent.5217
+SSH_AGENT_PID=5220
+Running ssh-add (command line suppressed)
+Identity added: /var/lib/jenkins/workspace/pipeline@tmp/private_key_331691441753337129.key (/var/lib/jenkins/workspace/pipeline@tmp/private_key_331691441753337129.key)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] withCredentials
+Masking supported pattern matches of $dockerhub_password
+[Pipeline] {
+[Pipeline] sh
+Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
+		 Affected argument(s) used the following variable(s): [dockerhub_password]
+		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 docker login -u lems01 -p ****
+WARNING! Using --password via the CLI is insecure. Use --password-stdin.
+Login Succeeded
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 docker image push lems01/pipeline:v1.39
+The push refers to repository [docker.io/lems01/pipeline]
+dc28b0c03884: Preparing
+82911dd4c5c5: Preparing
+5f70bf18a086: Preparing
+f49cb0df83fc: Preparing
+470b66ea5123: Preparing
+5f70bf18a086: Layer already exists
+f49cb0df83fc: Layer already exists
+dc28b0c03884: Layer already exists
+82911dd4c5c5: Layer already exists
+470b66ea5123: Layer already exists
+v1.39: digest: sha256:b46e35ce9a5d1823d3108930f2245a282f60d1aa1cb4c5f1258e064c2020defa size: 1370
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 docker image push lems01/pipeline:latest
+The push refers to repository [docker.io/lems01/pipeline]
+dc28b0c03884: Preparing
+82911dd4c5c5: Preparing
+5f70bf18a086: Preparing
+f49cb0df83fc: Preparing
+470b66ea5123: Preparing
+f49cb0df83fc: Layer already exists
+5f70bf18a086: Layer already exists
+dc28b0c03884: Layer already exists
+470b66ea5123: Layer already exists
+82911dd4c5c5: Layer already exists
+latest: digest: sha256:b46e35ce9a5d1823d3108930f2245a282f60d1aa1cb4c5f1258e064c2020defa size: 1370
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 docker image rm lems01/pipeline:latest lems01/pipeline:v1.39 pipeline:v1.39
+Untagged: lems01/pipeline:latest
+Untagged: lems01/pipeline:v1.39
+Untagged: lems01/pipeline@sha256:b46e35ce9a5d1823d3108930f2245a282f60d1aa1cb4c5f1258e064c2020defa
+Untagged: pipeline:v1.39
+Deleted: sha256:ebb3b153b96abc1dee91516ab37dc65ff915c47ad2d8310230a50018a2833b60
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 5220 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Copy files from Ansible to Web Server)
+[Pipeline] sshagent
+[ssh-agent] Using credentials ubuntu
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-QH61VW9uNfRo/agent.5282
+SSH_AGENT_PID=5285
+Running ssh-add (command line suppressed)
+Identity added: /var/lib/jenkins/workspace/pipeline@tmp/private_key_747371573730087236.key (/var/lib/jenkins/workspace/pipeline@tmp/private_key_747371573730087236.key)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@13.219.87.127
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.14.0-1010-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Wed Aug 13 10:47:43 UTC 2025
+
+  System load:  0.15               Processes:             174
+  Usage of /:   42.2% of 14.46GB   Users logged in:       1
+  Memory usage: 23%                IPv4 address for enX0: 172.31.91.219
+  Swap usage:   0%
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+45 updates can be applied immediately.
+To see these additional updates run: apt list --upgradable
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+[Pipeline] sh
++ scp /var/lib/jenkins/workspace/pipeline/Deployment.yaml /var/lib/jenkins/workspace/pipeline/Dockerfile /var/lib/jenkins/workspace/pipeline/Service.yaml /var/lib/jenkins/workspace/pipeline/ansible.yaml /var/lib/jenkins/workspace/pipeline/image.png ubuntu@13.219.87.127:/home/ubuntu
+[Pipeline] }
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 5285 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Kubernetes deplolyment from ansible using ansible)
+[Pipeline] sshagent
+[ssh-agent] Using credentials ubuntu
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-u80GQMxq94D0/agent.5313
+SSH_AGENT_PID=5316
+Running ssh-add (command line suppressed)
+Identity added: /var/lib/jenkins/workspace/pipeline@tmp/private_key_8432338510986850615.key (/var/lib/jenkins/workspace/pipeline@tmp/private_key_8432338510986850615.key)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 cd /home/ubuntu
+[Pipeline] sh
++ ssh -o StrictHostKeyChecking=no ubuntu@3.81.106.9 ansible-playbook ansible.yaml
+
+PLAY [all] *********************************************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Platform linux on host 172.31.91.219 is using the discovered Python
+interpreter at /usr/bin/python3.12, but future installation of another Python
+interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-
+core/2.18/reference_appendices/interpreter_discovery.html for more information.
+ok: [172.31.91.219]
+
+TASK [create new deployment] ***************************************************
+changed: [172.31.91.219 -> localhost]
+
+TASK [create new service] ******************************************************
+changed: [172.31.91.219 -> localhost]
+
+PLAY RECAP *********************************************************************
+172.31.91.219              : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[Pipeline] }
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 5316 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
